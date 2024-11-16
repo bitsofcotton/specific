@@ -25,3 +25,5 @@ If once we implement this, we can backport the specific values into masp/ddpmopt
 Either, if we completely sponged into specific values the accuracy, the original input stream has only punched structure.
 However, they're heavy algorithm enough with C/C++ implementation along with the linear order optimization compilers on our machines, we cannot test them.
 
+We partially can do this with masp 4 -&gt; ddpmopt w commands, this beats with the amount of the calculation we can do on normal personal machines we can have in early 2020s.
+

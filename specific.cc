@@ -71,7 +71,7 @@ int main(int argc, const char* argv[]) {
   invs.O();
   SimpleMatrix<num_t> op0(op);
   for(int i0 = 0; i0 < invs.rows(); i0 ++) {
-    op = op0 * invs.transpose();
+    op = invs * op0;
     for(int i = 0; i < op.rows(); i ++)
       for(int j = 0; j < op.cols(); j ++)
         op(i, j)  = reverseMantissa<num_t>(op(i, j) << myint(int(_FLOAT_BITS_)));

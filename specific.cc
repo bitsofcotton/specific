@@ -70,10 +70,10 @@ int main(int argc, const char* argv[]) {
   if(argc < 2) goto usage;
   std::cin >> op;
   assert(op.rows() && op.cols());
-  invs.resize(op.rows() - 1, op.rows());
+  invs.resize(op.rows(), op.rows());
   invs.O();
   op0 = op;
-  for(int i0 = 0; i0 < invs.rows(); i0 ++) {
+  for(int i0 = 0; i0 < invs.rows() - 1; i0 ++) {
     op = invs * op0;
     for(int i = 0; i < op.rows(); i ++)
       for(int j = 0; j < op.cols(); j ++)
@@ -93,8 +93,8 @@ int main(int argc, const char* argv[]) {
           k * work[0].cols(), work[j].row(k));
     vector<SimpleMatrix<num_t> > out;
     out.resize(1, SimpleMatrix<num_t>(1, 4));
-    out[0].row(0).O().setVector(0, revertProgramInvariant<num_t>(make_pair(
-      op * makeProgramInvariant<num_t>(in).first, num_t(int(1)) ) ) );
+    out[0].row(0).O() = revertProgramInvariant<num_t>(make_pair(
+      op * makeProgramInvariant<num_t>(in).first, num_t(int(1)) ) );
     if(! savep2or3<num_t>((std::string(argv[i]) + std::string("-specific.pgm")).c_str(), out) )
       cerr << "failed to save." << endl;
   }

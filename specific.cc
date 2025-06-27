@@ -70,7 +70,7 @@ int main(int argc, const char* argv[]) {
   if(argc < 2) goto usage;
   std::cin >> op;
   assert(op.rows() && op.cols());
-  invs.resize(op.rows(), op.rows());
+  invs.resize(op.rows() - 1, op.rows());
   invs.O();
   op0 = op;
   for(int i0 = 0; i0 < invs.rows(); i0 ++) {
@@ -81,13 +81,27 @@ int main(int argc, const char* argv[]) {
     invs.row(i0)  = linearInvariant<num_t>(op * op.transpose());
     invs.row(i0) /= sqrt(invs.row(i0).dot(invs.row(i0)));
   }
-  if(argv[1][0] == '-')
-    std::cout << op << std::endl;
-  else if(argv[1][0] == '+') {
-    ;
+  std::cout << (op = invs * op0) << std::endl;
+  for(int i = 1; i < argc; i ++) {
+    vector<SimpleMatrix<num_t> > work;
+    if(! loadp2or3<num_t>(work, argv[i])) continue;
+    SimpleVector<num_t> in(work.size() * work[0].rows() * work[0].cols());
+    in.O();
+    for(int j = 0; j < work.size(); j ++)
+      for(int k = 0; k < work[j].rows(); k ++)
+        in.setVector(j * work[0].rows() * work[0].cols() +
+          k * work[0].cols(), work[j].row(k));
+    vector<SimpleMatrix<num_t> > out;
+    out.resize(1, SimpleMatrix<num_t>(1, 4));
+    out[0].row(0).O().setVector(0, revertProgramInvariant<num_t>(make_pair(
+      op * makeProgramInvariant<num_t>(in).first, num_t(int(1)) ) ) );
+    if(! savep2or3<num_t>((std::string(argv[i]) + std::string("-specific.pgm")).c_str(), out) )
+      cerr << "failed to save." << endl;
   }
   return 0;
  usage:
+  cerr << "Usage:" << endl;
+  cerr << argv[0] << " <input0.ppm> ... < ..." << endl;
   return -1;
 }
 

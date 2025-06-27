@@ -65,20 +65,29 @@ int main(int argc, const char* argv[]) {
 #endif
   std::cout << std::setprecision(30);
   SimpleMatrix<num_t> op;
+  SimpleMatrix<num_t> invs;
+  SimpleMatrix<num_t> op0;
+  if(argc < 2) goto usage;
   std::cin >> op;
   assert(op.rows() && op.cols());
-  SimpleMatrix<num_t> invs(op.rows(), op.rows());
+  invs.resize(op.rows(), op.rows());
   invs.O();
-  SimpleMatrix<num_t> op0(op);
+  op0 = op;
   for(int i0 = 0; i0 < invs.rows(); i0 ++) {
     op = invs * op0;
     for(int i = 0; i < op.rows(); i ++)
       for(int j = 0; j < op.cols(); j ++)
         op(i, j)  = reverseMantissa<num_t>(op(i, j) << myint(int(_FLOAT_BITS_)));
-    invs.row(i0)  = linearInvariant<num_t>(op.transpose());
+    invs.row(i0)  = linearInvariant<num_t>(op * op.transpose());
     invs.row(i0) /= sqrt(invs.row(i0).dot(invs.row(i0)));
   }
-  std::cout << op << std::endl;
+  if(argv[1][0] == '-')
+    std::cout << op << std::endl;
+  else if(argv[1][0] == '+') {
+    ;
+  }
   return 0;
+ usage:
+  return -1;
 }
 

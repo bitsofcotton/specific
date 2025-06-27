@@ -1,0 +1,81 @@
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <map>
+#include <iomanip>
+#include <algorithm>
+#include <assert.h>
+#include <stdint.h>
+#if defined(_GETENTROPY_)
+#include <unistd.h>
+#endif
+#if defined(_FORK_)
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+extern char* environ[];
+#endif
+
+#if !defined(_OLDCPP_)
+#include <random>
+#if defined(_PERSISTENT_)
+# if !defined(_FLOAT_BITS_)
+#  define int ssize_t
+# elif _FLOAT_BITS_ == 64
+#  define int int32_t
+# elif _FLOAT_BITS_ == 128
+#  define int int64_t
+# else
+#  error Cannot handle PERSISTENT option
+# endif
+#endif
+#endif
+
+#include "lieonn.hh"
+typedef myfloat num_t;
+
+template <typename T> static inline T reverseMantissa(const T& x) {
+  myuint m(x);
+  myuint res(int(0));
+  for(int i = sizeof(myuint) * 8 - 1; 0 <= i; i --) {
+    res <<= 1;
+    res |= myuint(int(m >> i) & 1);
+  }
+  return T(res);
+}
+
+#if !defined(_OLDCPP_) && defined(_PERSISTENT_)
+# undef int
+#endif
+int main(int argc, const char* argv[]) {
+#if !defined(_OLDCPP_) && defined(_PERSISTENT_)
+# if !defined(_FLOAT_BITS_)
+#  define int ssize_t
+# elif _FLOAT_BITS_ == 64
+#  define int int32_t
+# elif _FLOAT_BITS_ == 128
+#  define int int64_t
+# else
+#  error Cannot handle PERSISTENT option
+# endif
+#endif
+  std::cout << std::setprecision(30);
+  SimpleMatrix<num_t> op;
+  std::cin >> op;
+  assert(op.rows() && op.cols());
+  for(int i = 0; i < op.rows(); i ++)
+    for(int j = 0; j < op.cols(); j ++)
+      op(i, j) = reverseMantissa<num_t>(op(i, j) << myint(int(_FLOAT_BITS_)));
+  SimpleVector<num_t> linv(linearInvariant<num_t>(op.transpose()));
+  for(int i = 0; i < linv.size(); i ++) op.row(i) *= linv[i];
+  for(int i = 0; i < op.rows(); i ++)
+    for(int j = 0; j < op.cols(); j ++)
+      op(i, j) = reverseMantissa<num_t>(op(i, j)) >> myint(int(_FLOAT_BITS_));
+  std::cout << op << std::endl;
+  return 0;
+}
+

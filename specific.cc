@@ -41,9 +41,9 @@ typedef myfloat num_t;
 template <typename T> static inline T reverseMantissa(const T& x) {
   myuint m(x);
   myuint res(int(0));
-  for(int i = sizeof(myuint) * 8 - 1; 0 <= i; i --) {
+  for(int i = 0; i < sizeof(myuint) * 8; i --) {
     res <<= 1;
-    res |= myuint(int(m >> i) & 1);
+    res |= myuint(int(i ? m >> i : m) & 1);
   }
   return T(res);
 }

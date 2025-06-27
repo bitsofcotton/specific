@@ -67,14 +67,17 @@ int main(int argc, const char* argv[]) {
   SimpleMatrix<num_t> op;
   std::cin >> op;
   assert(op.rows() && op.cols());
-  for(int i = 0; i < op.rows(); i ++)
-    for(int j = 0; j < op.cols(); j ++)
-      op(i, j) = reverseMantissa<num_t>(op(i, j) << myint(int(_FLOAT_BITS_)));
-  SimpleVector<num_t> linv(linearInvariant<num_t>(op.transpose()));
-  for(int i = 0; i < linv.size(); i ++) op.row(i) *= linv[i];
-  for(int i = 0; i < op.rows(); i ++)
-    for(int j = 0; j < op.cols(); j ++)
-      op(i, j) = reverseMantissa<num_t>(op(i, j)) >> myint(int(_FLOAT_BITS_));
+  SimpleMatrix<num_t> invs(op.rows(), op.rows());
+  invs.O();
+  SimpleMatrix<num_t> op0(op);
+  for(int i0 = 0; i0 < invs.rows(); i0 ++) {
+    op = op0 * invs.transpose();
+    for(int i = 0; i < op.rows(); i ++)
+      for(int j = 0; j < op.cols(); j ++)
+        op(i, j)  = reverseMantissa<num_t>(op(i, j) << myint(int(_FLOAT_BITS_)));
+    invs.row(i0)  = linearInvariant<num_t>(op.transpose());
+    invs.row(i0) /= sqrt(invs.row(i0).dot(invs.row(i0)));
+  }
   std::cout << op << std::endl;
   return 0;
 }

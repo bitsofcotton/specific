@@ -81,6 +81,12 @@ int main(int argc, const char* argv[]) {
     invs.row(i0)  = linearInvariant<num_t>(op * op.transpose());
     invs.row(i0) /= sqrt(invs.row(i0).dot(invs.row(i0)));
   }
+  {
+    SimpleVector<num_t> lastinv(invs.rows());
+    lastinv.O(num_t(int(1)));
+    lastinv -= invs * lastinv;
+    invs.row(invs.rows() - 1) = lastinv / sqrt(lastinv.dot(lastinv));
+  }
   std::cout << (op = invs * op0) << std::endl;
   for(int i = 1; i < argc; i ++) {
     vector<SimpleMatrix<num_t> > work;

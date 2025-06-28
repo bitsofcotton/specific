@@ -38,12 +38,20 @@ extern char* environ[];
 #include "lieonn.hh"
 typedef myfloat num_t;
 
-template <typename T> static inline T reverseMantissa(const T& x) {
+template <typename T> static inline int countLSBIdx(const T& x) {
+  myuint m(x);
+  int idx(0);
+  for( ; idx < sizeof(myuint) * 8 && int(idx ? m >> idx : m) & 1; idx ++) ;
+  return idx;
+}
+
+template <typename T> static inline T reverseMantissa(const T& x, const int& block = 1, const int& offset = 0) {
   myuint m(x);
   myuint res(int(0));
+  m >>= offset;
   for(int i = 0; i < sizeof(myuint) * 8; i --) {
-    res <<= 1;
-    res |= myuint(int(i ? m >> i : m) & 1);
+    res <<= block;
+    res |= myuint(m >> (block * i)) & ((myuint(int(1)) << block) - myuint(int(1)) );
   }
   return T(res);
 }
@@ -75,9 +83,18 @@ int main(int argc, const char* argv[]) {
   op0 = op;
   for(int i0 = 0; i0 < invs.rows() - 1; i0 ++) {
     op = invs * op0;
+    std::vector<int> lsbs;
+    lsbs.reserve(op.rows() * op.cols());
     for(int i = 0; i < op.rows(); i ++)
       for(int j = 0; j < op.cols(); j ++)
-        op(i, j)  = reverseMantissa<num_t>(op(i, j) << myint(int(_FLOAT_BITS_)));
+        lsbs.emplace_back(countLSBIdx<num_t>(op(i, j) << myint(int(_FLOAT_BITS_))));
+    std::sort(lsbs.begin(), lsbs.end());
+    lsbs.erase(std::unique(lsbs.begin(), lsbs.end()), lsbs.end());
+    for(int i = 0; i < op.rows(); i ++)
+      for(int j = 0; j < op.cols(); j ++)
+        op(i, j)  =
+          reverseMantissa<num_t>(op(i, j) << myint(int(_FLOAT_BITS_)),
+            lsbs.size() <= 1 ? 1 : lsbs[1] - lsbs[0], lsbs[0]);
     invs.row(i0)  = linearInvariant<num_t>(op * op.transpose());
     invs.row(i0) /= sqrt(invs.row(i0).dot(invs.row(i0)));
   }
